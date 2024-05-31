@@ -1,6 +1,6 @@
 # Getting started
 ## Project for AP Computer Science
-No extra dependencies needed.
+I will update the list of necassary libraries later lol.
 
 Just run `python main.py` to start the script
 
