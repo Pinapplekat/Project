@@ -1,3 +1,5 @@
+# Written by @DanTCA1
+
 import time
 import types
 import sys
