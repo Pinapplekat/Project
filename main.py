@@ -23,7 +23,7 @@ def launchCon():
     con_approve = True
     sock.recv(9999)
     print(f"{colors['default']}  ┝ {colors['success']}Connection approved")
-    print(f"{colors['success']}  └ Connection successful to{colors['default']} {colors['address']}{hostname} @ {ip}:{port}")
+    print(f"{colors['success']}  └ Connection successful to {colors['address']}{hostname} @ {ip}:{port}{colors['default']}")
     # If the user did not give data, then it will not run the connection test
     if data != "":
         makeReq(data)
@@ -242,12 +242,13 @@ if __name__ == "__main__":
         elif closed == False: print(f"{colors['error']}  └ Connection could not close.")
         else: print(f"{colors['error']}  └ Could not complete task.")
 
-        # Makes the color red and italicised for the traceback exception
+        # Makes the color red and italicized for the traceback exception
         print(colors['traceback'])
         
-        # Prints the excpetion
+        # Prints the exception
         traceback.print_exception(e)
 
     # Resetting the colors in terminal just incase i forget lol
     print(colors['default'])
-
+    time.sleep(1)
+    stop_speaker()
