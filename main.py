@@ -1,7 +1,7 @@
 # Backend created by @DanTCA1 & Frontend somewhat created by Elijah Ryerson (@Pinapplekat)
 
 # Importing packages
-import socket, types, traceback, sys, time, pyttsx3, multiprocessing, speech_recognition as sr
+import socket, types, traceback, sys, os, time, subprocess, pyttsx3, multiprocessing, json, speech_recognition as sr
 from threading import Thread
 # Special packages created by @DanTCA1 for the backend, but used in the frontend cuz im lazy. it allows me to connect to a websocket in an easier way and lets me implement visual goodness while the script is running
 import activesocket, inputplus
@@ -9,7 +9,7 @@ from fullprint import FullPrint as Print
 
 # Launching the connection
 def launchCon():
-    global closed, con_approve, started
+    global closed, con_approve, started, ip
 
     # Creates a socket, gets the ip address from the hostname defined in the arguments, connects to the ip address and port, sends the headers, checks for response, makes a test request if there is a parameter, then prints it out
     print(f"{colors['default']}{colors['blink']}Establishing Connection{colors['default']}")
@@ -22,11 +22,9 @@ def launchCon():
     sock.send(b"GET / HTTP/1.1\r\nHost: ai.dantca.net\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\nSec-WebSocket-Protocol: chat, superchat\r\nSec-WebSocket-Version: 13\r\n\r\n")
     con_approve = True
     sock.recv(9999)
-    print(f"{colors['default']}  ┝ {colors['success']}Connection approved")
-    print(f"{colors['success']}  └ Connection successful to {colors['address']}{hostname} @ {ip}:{port}{colors['default']}")
+    print(f"{colors['default']}  ┝ {colors['success']}Connection approved{colors['default']}")
+    print(f"  └ {colors['success']}Connection successful to {colors['address']}{hostname} @ {ip}:{port}{colors['default']}")
     # If the user did not give data, then it will not run the connection test
-    if data != "":
-        makeReq(data)
     closed = False
     started = True
 
@@ -34,9 +32,26 @@ def makeReq(data):
     global chat_history
     print(f"{colors['default']}{colors['blink']}Making request{colors['default']}")
     activesocket.webSocketFormat(sock, data, MASKED=True)
-    res = activesocket.parseReq(sock)
-    print(f"{colors['default']}  └ {colors['definition']}Response{colors['default']} ------------")
-    print("  "+colors['address']+res)
+    while True:
+        res = activesocket.parseReq(sock)
+        res = json.loads(res)
+        if res["success"] == False:
+            break
+        print("  ┝ "+colors['definition']+res["status"]+colors['default'])
+        if res.get("response", False):
+            break
+    
+    if res["success"] == False:
+        res = res["error"]
+        error = True
+    else:
+        res = res["response"]
+        error = False
+    print(f"{colors['default']}  └ {colors['success']}Response{colors['default']} ------------")
+    if error:
+        print("  "+colors['error']+res)
+    else:
+        print("  "+colors['address']+res)
     print(f"{colors['default']}  -----------------------")
     chat_history.append(f"{res}\" --> ")
     list = res.split("```")
@@ -81,7 +96,10 @@ def speak(phrase, vc):
 def stop_speaker():
     global term
     term = True
-    t.join()
+    try:
+        t.join()
+    except:
+        pass
 
 @threaded
 def manage_process(p):
@@ -93,13 +111,18 @@ def manage_process(p):
         else:
             continue
 
-def SpeakText(phrase, vc = 0):
+def SpeakText(phrase, vc = 1):
     global t
     global term
     term = False
     p = multiprocessing.Process(target=speak, args=(phrase,vc))
     p.start()
     t = manage_process(p)
+
+def restart():
+    # subprocess.Popen(["python", "main.py", devmode])
+    os.execv(sys.executable, ['python'] + sys.argv)
+    raise Exception(colors["definition"]+"This is not an error, the program is just restarting lol"+colors["default"])
 
 if __name__ == "__main__":
 
@@ -121,11 +144,12 @@ if __name__ == "__main__":
         "error": "\033[1;31m"
     }
 
-    print(f"\n{colors['italic']}Written by @DanTCA1 (Backend) & Elijah Ryerson (Frontend){colors['default']}\n")
+    print(f"\n{colors['italic']}Written by Даниил Иванов (Backend) & Elijah Ryerson (Frontend){colors['default']}\n")
+
 
     # Arguments
     arguments = sys.argv
-    defaults = ["request.py", "ai.dantca.net", 80, ""]
+    defaults = ["request.py", "false"]
     arguments = arguments + defaults[len(arguments):]
 
     # Errors
@@ -138,16 +162,23 @@ if __name__ == "__main__":
     override = False
 
     chat_history = []
-
+    print("test")
     try:
         # Set parameters from the argument section
-        hostname = arguments[1]
-        port = int(arguments[2])
-        data = arguments[3]
+        devmode = arguments[1].lower()
+        hostname = "ai.dantca.net"
+        port = 80
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # Just in case
         print(colors['default'])
+
+        if devmode == "true":
+            override = True
+            print("DEVMODE IS ON. TYPE 'voice' TO RETURN TO VOICE CONTROL")
+        else:
+            override = False
+        launchCon()
 
         while online == True:    
         
@@ -163,6 +194,12 @@ if __name__ == "__main__":
                             stop_speaker()
                             SpeakText("Goodbye!")
                             online = False
+                            breakLoop = True
+                            break
+                        if i[1] == "rs" or i[1] == "restart":
+                            restart()
+                            online = False
+                            breakLoop = True
                             break
                         elif i[1] == "override":
                             print(f"{colors['default']}{colors['blink']}Activating text override{colors['default']}")
@@ -194,7 +231,7 @@ if __name__ == "__main__":
                     r.adjust_for_ambient_noise(source2, duration=0.2)
                     
                     #listens for the user's input 
-                    audio2 = r.listen(source2,  timeout=3)
+                    audio2 = r.listen(source2,  timeout=0.5, phrase_time_limit=3)
                     
                     # Using google to recognize audio
                     MyText = r.recognize_google(audio2)
@@ -213,6 +250,12 @@ if __name__ == "__main__":
                             closeCon()
                             stop_speaker()
                             SpeakText("Goodbye!")
+                            breakLoop = True
+                            break
+                        elif MyText.lower() == "restart":
+                            restart()
+                            SpeakText("Restarting, stand by")
+                            online = False
                             breakLoop = True
                             break
                         elif MyText.lower() == "stop":
