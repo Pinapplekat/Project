@@ -1,6 +1,6 @@
 # Getting started
 ## Project for AP Computer Science
-I will update the list of necassary libraries later lol.
+`pip install pyaudio pyttsx3 SpeechRecognition setuptools`
 
 Just run `python main.py` to start the script
 
