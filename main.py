@@ -68,7 +68,7 @@ def makeReq(data):
 
 # Closing the connection
 def closeCon():
-    global closed, started
+    global closed, started, stop
 
     print(f"{colors['default']}{colors['blink']}Closing connection{colors['default']}")
     activesocket.webSocketFormat(sock, opcode="Close", errorCode=1001, content="closing from the pi")
@@ -76,6 +76,10 @@ def closeCon():
     closed = True
     started = False
     print(colors['default'])
+    time.sleep(1)
+    stop_speaker()
+    stop = True
+    exit(1)
 
 # A bunch of stuff for async tts
 def threaded(fn):
@@ -121,8 +125,8 @@ def SpeakText(phrase, vc = 1):
 
 def restart():
     # subprocess.Popen(["python", "main.py", devmode])
-    os.execv(sys.executable, ['python'] + sys.argv)
-    raise Exception(colors["definition"]+"This is not an error, the program is just restarting lol"+colors["default"])
+    subprocess.Popen(["python.exe", "restart.py", devmode], shell=True)
+    closeCon()
 
 if __name__ == "__main__":
 
@@ -160,6 +164,7 @@ if __name__ == "__main__":
     online = True
     started = False
     override = False
+    stop = False
 
     chat_history = []
     print("test")
@@ -180,7 +185,7 @@ if __name__ == "__main__":
             override = False
         launchCon()
 
-        while online == True:    
+        while online == True and stop == False:    
         
             output = inputplus.tick()
             Print(output.text, end="\r")
@@ -190,11 +195,10 @@ if __name__ == "__main__":
                 for i in output.cmd:
                     if i[0] == "cmd":
                         if i[1] == "close":
-                            closeCon()
-                            stop_speaker()
                             SpeakText("Goodbye!")
                             online = False
                             breakLoop = True
+                            closeCon()
                             break
                         if i[1] == "rs" or i[1] == "restart":
                             restart()
@@ -213,7 +217,7 @@ if __name__ == "__main__":
                             stop_speaker()
                         elif override:
                             makeReq(i[1])
-                if breakLoop:
+                if breakLoop or stop:
                     break
             
             if override:
@@ -290,8 +294,3 @@ if __name__ == "__main__":
         
         # Prints the exception
         traceback.print_exception(e)
-
-    # Resetting the colors in terminal just incase i forget lol
-    print(colors['default'])
-    time.sleep(1)
-    stop_speaker()
