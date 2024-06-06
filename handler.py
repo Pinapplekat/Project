@@ -270,6 +270,10 @@ if __name__ == "__main__":
             except sr.UnknownValueError:
                 print("Unknown error occurred, this error likely doesn't matter.")
 
+            except OSError:
+                print("No microphone available, switching to text mode...")
+                SpeakText("No microphone detected. Use your keyboard to type requests.")
+                override = True
 
     except Exception as e:
         # Figuring out what the error is using the variables i made earlier
