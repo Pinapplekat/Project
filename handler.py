@@ -187,27 +187,29 @@ if __name__ == "__main__":
                 breakLoop = False
                 for i in output.cmd:
                     if i[0] == "cmd":
-                        if i[1] == "close":
+                        cmd = i[1].lower()
+                        if cmd == "close":
                             stop_speaker()
                             SpeakText("Goodbye!")
                             online = False
                             breakLoop = True
                             closeCon()
                             break
-                        if i[1] == "rs" or i[1] == "restart":
+                        if cmd in ["rs", "restart"]:
+                            stop_speaker()
                             SpeakText("Restarting, stand by")
                             time.sleep(3)
                             closeCon()
                             exit(1)
-                        elif i[1] == "override":
+                        elif cmd == "override":
                             print(f"{colors['default']}{colors['blink']}Activating text override{colors['default']}")
                             override = True
                             if started == False:
                                 launchCon()
-                        elif i[1] == "voice":
+                        elif cmd == "voice":
                             print(f"{colors['default']}{colors['blink']}Returned to voice control{colors['default']}")
                             override = False
-                        elif i[1] == "stop":
+                        elif cmd == "stop":
                             stop_speaker()
                         elif override:
                             makeReq(i[1])
@@ -251,6 +253,7 @@ if __name__ == "__main__":
                             breakLoop = True
                             break
                         elif MyText.lower() == "restart":
+                            stop_speaker()
                             SpeakText("Restarting, stand by")
                             time.sleep(3)
                             closeCon()
