@@ -30,7 +30,7 @@ def launchCon():
 
 def makeReq(data):
     global chat_history
-    print(f"{colors['default']}{colors['blink']}Making request{colors['default']}")
+    print(f"{colors['default']}{colors['blink']}Making request{colors['default']} - \"{colors['definition']}{data}{colors['default']}\"")
     activesocket.webSocketFormat(sock, data, MASKED=True)
     while True:
         res = activesocket.parseReq(sock)
@@ -275,6 +275,7 @@ if __name__ == "__main__":
 
             except OSError:
                 print("No microphone available, switching to text mode...")
+                print("Start typing to make a request")
                 SpeakText("No microphone detected. Use your keyboard to type requests.")
                 override = True
 

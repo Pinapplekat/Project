@@ -1,4 +1,7 @@
 pip install pyaudio pyttsx3 SpeechRecognition setuptools
-@echo python main.py > "./source/start.bat"
-"./source/start.bat"
-del "./source/fresh-start.bat"
+cd source
+@echo off
+@echo cd source > "../start.bat"
+@echo python main.py >> "../start.bat"
+cd ../
+./start.bat
